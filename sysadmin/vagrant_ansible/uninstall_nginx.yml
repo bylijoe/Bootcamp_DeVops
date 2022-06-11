@@ -1,9 +1,0 @@
-- name: Remove nginx package
-  hosts: all
-  become: true
-  tasks:
-    - name: remove package
-      apt:
-        name: nginx*
-        state: absent
-        purge: yes

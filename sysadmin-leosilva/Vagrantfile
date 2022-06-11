@@ -1,0 +1,49 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.define "wordpress" do |wordpress|
+    wordpress.vm.box = "ubuntu/focal64"
+    wordpress.vm.box_check_update = false
+    wordpress.vm.hostname = "wordpress"
+    config.vm.synced_folder '.', '/vagrant', disabled: true # Desabilitado para poder funcionar desde WSL
+    config.vm.provision "file", source: "./id_rsa.pub", destination: "~/.ssh/id_rsa.pub"
+    config.vm.provision :shell, :inline => "cat /home/vagrant/.ssh/id_rsa.pub >> /home/vagrant/.ssh/authorized_keys", run: "always"
+    # wordpress.vm.network "forwarded_port", guest: 80, host: 8081
+    wordpress.vm.network "forwarded_port", guest: 80, host: 8081, host_ip: "127.0.0.1"
+    wordpress.vm.network "private_network", ip: "192.168.100.5" , nic_type: "virtio", virtualbox_intnet: "keepcoding"
+    file_for_disk = "./ubuntu_wordpress.vdi"
+    wordpress.vm.provider "virtualbox" do |vb|
+      vb.name = "wordpress"
+      vb.cpus = "1"
+      vb.memory = "1024"
+      vb.default_nic_type = "virtio"
+      vb.customize [ "modifyvm", :id, "--uartmode1", "disconnected" ]  # Linea agregada para funcionar desde WSL
+      vb.customize ['createhd', '--filename', file_for_disk, '--size', 10 * 1024]
+      vb.customize ['storageattach', :id, '--storagectl', 'SCSI', '--port', 2, '--device', 0, '--type', 'hdd', '--medium', file_for_disk]
+    end
+  end
+
+  config.vm.define "elasticsearch" do |elasticsearch|
+    elasticsearch.vm.box = "ubuntu/focal64"
+    elasticsearch.vm.box_check_update = false
+    elasticsearch.vm.hostname = "elasticsearch"
+    config.vm.synced_folder '.', '/vagrant', disabled: true # Desabilitado para poder funcionar desde WSL
+    config.vm.provision "file", source: ".kibana", destination: "/home/vagrant/.kibana"
+    config.vm.provision "file", source: "./id_rsa.pub", destination: "~/.ssh/id_rsa.pub"
+    config.vm.provision :shell, :inline => "cat /home/vagrant/.ssh/id_rsa.pub >> /home/vagrant/.ssh/authorized_keys", run: "always"
+    elasticsearch.vm.network "forwarded_port", guest: 80, host: 8080
+    elasticsearch.vm.network "forwarded_port", guest: 9200, host: 9200, host_ip: "127.0.0.1"
+    elasticsearch.vm.network "private_network", ip: "192.168.100.6" , nic_type: "virtio", virtualbox_intnet: "keepcodingo"
+    file_for_disk = "./ubuntu_elasticsearch.vdi"
+    elasticsearch.vm.provider "virtualbox" do |vb|
+      vb.name = "elasticsearch"
+      vb.cpus = "1"
+      vb.memory = "4096"
+      vb.default_nic_type = "virtio"
+      vb.customize [ "modifyvm", :id, "--uartmode1", "disconnected" ] # Linea agregada para funcionar desde WSL
+      vb.customize ['createhd', '--filename', file_for_disk, '--size', 10 * 1024]
+      vb.customize ['storageattach', :id, '--storagectl', 'SCSI', '--port', 2, '--device', 0, '--type', 'hdd', '--medium', file_for_disk]
+    end  
+  end
+end

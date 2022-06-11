@@ -1,0 +1,30 @@
+---
+
+- hosts: all
+  vars:
+    lvm_apply: true
+    lvm_groups:
+      - vgname: 'data-vg'
+        disks: '/dev/sdb'
+        create: true
+        lvnames:
+          - lvname: 'backuppc_1'
+            size: '512M'
+            create: true
+            filesystem: 'ext4'
+            mount: true
+            mount_point: '/data'
+            mount_options: 'defaults,noatime'
+      - vgname: 'more-vg'
+        disks: '/dev/sdc'
+        create: true
+        lvnames: []
+  roles:
+    - ../../
+  post_tasks:
+    - name: COMMAND | lvdisplay
+      command: lvdisplay
+      changed_when: false
+    - name: COMMAND | vgdisplay
+      command: vgdisplay
+      changed_when: false

@@ -1,0 +1,45 @@
+---
+- name:  Nginx | Figure out PHP FPM socket location
+  shell: dpkg -l | grep php-fpm  | awk '{print $3}' | grep -o '[0-9]\.[0-9]' | head -n 1
+  register: 'php_ver'
+
+- name: Nginx | Copy virtual host configuration file
+  template:
+    src: "nginx-vhost.j2"
+    dest: "/etc/nginx/sites-available/{{ web_sitename }}"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Nginx | Symlink virtual host configuration file from sites-available to sites-enabled
+  file:
+    state: link
+    src: "/etc/nginx/sites-available/{{ web_sitename }}"
+    dest: "/etc/nginx/sites-enabled/{{ web_sitename }}"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Nginx | Remove nginx default site-available file
+  file:
+    path: "/etc/nginx/sites-available/default"
+    state: absent
+
+- name: Nginx | Remove nginx default site-enabled file
+  file:
+    path: "/etc/nginx/sites-enabled/default"
+    state: absent
+
+- name: Nginx | Generation htpasswd.users credentials file
+  shell: echo "kibanaadmin:$(openssl passwd -apr1 -in /home/vagrant/.kibana)" | sudo tee -a /etc/nginx/htpasswd.users
+
+
+- name: Start service nginx
+  service:
+    name: "nginx"
+    state: started
+
+- name: Restarted service nginx
+  service:
+    name: "nginx"
+    state: restarted

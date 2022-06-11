@@ -1,0 +1,34 @@
+- hosts: elasticsearch
+  become: yes
+  vars:
+    ## Setting LVM Role Vars
+    lvm_apply: true
+    lvm_groups:
+      - vgname: elk-vg
+        disks: /dev/sdc
+        create: true
+        lvnames:
+          - lvname: elk
+            size: 5g
+            create: true
+            filesystem: ext4
+            mount: true
+            mount_point: /var/lib/elasticsearch
+            mount_options: 'defaults,noatime'
+    ## Settings logstash Role Vars
+    logstash_enabled_managed_template: false
+
+    ## Settings elasticsearch Role Vars
+    elasticsearch_heap_size_max: 3g
+
+    ## Settings kibana Role Vars
+    kibana_server_host: "localhost"
+    web_sitename: "demo.kibana.com"
+
+
+  roles:
+    - lvm
+    - java  
+    - logstash 
+    - elasticsearch
+    - kibana

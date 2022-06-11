@@ -1,0 +1,5 @@
+---
+# defaults file for ansible-manage-lvm
+lvm_groups: []
+
+lvm_apply: false  #defines if LVM will be managed by role....default is false to ensure nothing is changed by accident.

@@ -1,0 +1,26 @@
+---
+galaxy_info:
+  author: Emilien Mantel
+  description: Role to manage LVM Groups/Logical Volumes. Can be used to create, extend or resize LVM.
+  company:
+  license: BSD
+  min_ansible_version: 2.5
+  platforms:
+  - name: EL
+    versions:
+    - 6
+    - 7
+  - name: Ubuntu
+    versions:
+    - precise
+    - trusty
+  - name: Debian
+    versions:
+    - jessie
+    - stretch
+
+  galaxy_tags:
+    - system
+    - lvm
+
+dependencies: []

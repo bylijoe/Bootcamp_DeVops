@@ -1,0 +1,46 @@
+- hosts: "{{ host | default('wordpress')}}"
+  become: true
+  vars:
+    ## Setting LVM Role Vars
+    lvm_apply: true
+    lvm_groups:
+      - vgname: mysql-vg
+        disks: /dev/sdc
+        create: true
+        lvnames:
+          - lvname: mysql
+            size: 5g
+            create: true
+            filesystem: ext4
+            mount: true
+            mount_point: /var/lib/mysql
+            mount_options: 'defaults,noatime'
+
+    ## Setting Wordpress Role Vars
+    wp_version: latest
+    wp_webserver: nginx
+    wp_mysql_db: 'wordpress'
+    wp_mysql_user: 'wordpressuser'
+    wp_mysql_password: 'keepcoding'
+    wp_admin_email: 'leonardosilva.nevado@gmail.com'
+    wp_sitename: wordpress
+    wp_install_dir: "/var/www/wordpress"
+
+    filebeat_inputs:
+      - type: log
+        paths:
+          - "/var/log/*.log"
+          - "/var/log/nginx/*.log"
+          - "/var/log/mysql/*.log"
+    filebeat_output_elasticsearch_enabled: false
+    filebeat_ssl_certificate_file: ""
+    filebeat_ssl_key_file: ""
+    filebeat_output_logstash_enabled: true
+    filebeat_output_logstash_hosts:
+      - "192.168.100.6:5044"
+    filebeat_enable_logging: false
+    filebeat_elastic_cloud_enabled: false
+  roles:
+    - lvm
+    - wordpress
+    - filebit
