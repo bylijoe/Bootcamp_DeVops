@@ -1,0 +1,38 @@
+name: Minikube-Kubernetes Cluster interaction
+
+on:
+  workflow_dispatch:
+
+jobs:
+  laboratorio:
+    name: Minikube-Kubernetes Cluster interaction
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Minikube
+        uses: manusa/actions-setup-minikube@v2.4.3
+        with:
+          minikube version: 'v1.24.0'
+          kubernetes version: 'v1.23.0'
+          github token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: "v3.8.2"
+      - name: Deploy Chart fastapi
+        run: |
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts 
+          helm repo update
+          helm  upgrade --install prometheus prometheus-community/kube-prometheus-stack -f custom_values_prometheus.yaml  --wait --version 34.1.1
+          minikube addons enable metrics-server 
+      - name: Helm ls
+        run: |
+          sleep 30
+          helm ls
+      - name: Interact with the cluster
+        working-directory: ./charts
+        run: |
+          kubectl get pods --all-namespaces
+          helm upgrade -i fastapi fastapi --namespace default
+

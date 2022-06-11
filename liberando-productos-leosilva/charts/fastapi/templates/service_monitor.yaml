@@ -1,0 +1,14 @@
+{{- if .Values.metrics.enabled -}}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "fastapi.fullname"  . }}
+  labels:
+    {{- include "fastapi.labels" . | nindent 4 }}
+spec:
+  endpoints:
+  - port: {{ .Values.metrics.svc.name }}
+  selector:
+    matchLabels:
+      {{- include "fastapi.selectorLabels" . | nindent 6 }}
+{{- end }}

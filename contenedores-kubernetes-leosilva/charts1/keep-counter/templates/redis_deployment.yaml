@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "keep-counter.fullname" . }}-redis
+  labels:
+    {{- include "keep-counter.labels" . | nindent 4 }}-redis
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "keep-counter.selectorLabels" . | nindent 6 }}-redis
+  template:
+    metadata:
+      labels:
+        {{- include "keep-counter.selectorLabels" . | nindent 8 }}-redis
+    spec:
+      containers:
+        - name: redis
+          image: {{ .Values.deployment.redis.image }}
+          args: ["--requirepass", "$(REDIS_PASSWORD)"]
+          ports:
+            - containerPort: {{ .Values.deployment.redis.port }}
+          resources:
+            requests:
+              memory: {{ .Values.deployment.redis.resources.requests.memory }}
+              cpu: {{ .Values.deployment.redis.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.deployment.redis.resources.limits.memory }}
+              cpu: {{ .Values.deployment.redis.resources.limits.cpu }}
+          volumeMounts:
+          - name: data
+            mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "keep-counter.fullname" . }}-redis-pvc

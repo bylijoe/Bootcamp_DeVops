@@ -1,0 +1,10 @@
+---
+
+- name: Install docker
+  hosts: docker
+  become: yes
+  roles:
+    - name: geerlingguy.docker
+
+
+...

@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+  name: flask-dpl
+spec:
+  selector:
+    matchLabels:
+      app: flask
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: flask
+      annotations:
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "5000"
+        prometheus.io/scrape: "true"  
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - flask
+            topologyKey: "kubernetes.io/hostname" 
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - redis
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+      - image: leosn/keep-counter:4.0
+        name: flask
+        env:
+        - name: REDIS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: db-config
+              key: redis_port
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: db-config
+              key: redis_host
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: password  
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /health/liveness
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3        
+        readinessProbe:
+          httpGet:
+            path: /health/readiness
+            port: 5000 
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3     
+        ports:
+        - containerPort: 5000
+        imagePullPolicy: Always
+        

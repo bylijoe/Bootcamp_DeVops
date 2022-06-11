@@ -1,0 +1,55 @@
+pipeline {
+    agent {
+        label('terraform')
+    }
+
+    environment {
+        AWS_ACCESS_KEY_ID     = credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
+        
+    }
+
+    options { 
+        disableConcurrentBuilds()           
+        timeout(time: 10, unit: 'MINUTES')
+        timestamps()
+    }
+
+    stages {
+        stage('init') {
+            steps {
+                dir('infra') {
+                    sh 'terraform init'
+                }
+            }
+        }
+        stage('validate') {
+            steps {
+                dir('infra') {
+                    sh 'terraform validate'
+                }
+            }
+        }
+        stage('build-dev') {
+            steps {
+                dir('infra') {
+                    sh 'terraform plan '
+                    sh 'terraform apply -var-file=env-dev/tf-dev.tfvars  -state-out=dev.tfstate  --auto-approve'
+                }
+            }
+        } 
+        stage('build-prod') {
+            steps {
+                dir('infra') {
+                    timeout(time: 10, unit: 'MINUTES') {
+                    input message: 'Are you sure to deploy?', ok: 'Yes, deploy in STAGING'
+                    sh 'terraform plan'
+                    sh 'terraform apply -var-file=env-prod/tf-prod.tfvars -state-out=prod.tfstate --auto-approve'
+                    }
+                }
+            }
+        }   
+
+    }  
+
+}

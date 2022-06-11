@@ -1,0 +1,26 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.define "ubuntu1" do |ubuntu|
+    ubuntu.vm.box = "ubuntu/focal64"
+    ubuntu.vm.box_check_update = false
+    ubuntu.vm.hostname = "ubuntu1"
+    ubuntu.vm.network "private_network", ip: "192.168.100.10", nic_type: "virtio", virtualbox__intnet: "keepcoding"
+    ubuntu.vm.provider "virtualbox" do |vb|
+      vb.memory = "512"
+      vb.default_nic_type = "virtio"
+    end
+  end
+
+  config.vm.define "ubuntu2" do |ubuntu|
+    ubuntu.vm.box = "ubuntu/focal64"
+    ubuntu.vm.box_check_update = false
+    ubuntu.vm.hostname = "ubuntu2"
+    ubuntu.vm.network "private_network", ip: "192.168.100.11", nic_type: "virtio", virtualbox__intnet: "keepcoding"
+    ubuntu.vm.provider "virtualbox" do |vb|
+      vb.memory = "512"
+      vb.default_nic_type = "virtio"
+    end
+  end  
+end

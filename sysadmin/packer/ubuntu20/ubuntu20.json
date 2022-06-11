@@ -1,0 +1,50 @@
+{
+    "builders": [
+      {
+        "name": "ubuntu-20.04.1-live-server",
+        "type": "virtualbox-iso",
+        "guest_os_type": "Ubuntu_64",
+        "vm_name": "ubuntu-20.04",
+        "headless": false,
+        "output_directory": "output-ubuntu20",
+        "shutdown_command": "echo 'ubuntu'|sudo -S shutdown -P now",
+        "ssh_password": "vagrant",
+        "ssh_username": "vagrant",
+        "vboxmanage": [
+            [
+              "modifyvm",
+              "{{.Name}}",
+              "--memory",
+              1024
+            ],
+            [
+              "modifyvm",
+              "{{.Name}}",
+              "--cpus",
+              1
+            ]
+          ],
+        "ssh_timeout": "1000s",
+        "ssh_handshake_attempts": "200",
+        "nic_type": "virtio",
+        "http_directory": "./autoinstall",
+        "floppy_files": ["./autoinstall/user-data", "./autoinstall/meta-data"],
+        "floppy_label": "cidata",
+        "disk_size": 15000,
+        "iso_urls": "https://releases.ubuntu.com/20.04/ubuntu-20.04.3-live-server-amd64.iso",
+        "iso_checksum": "sha256:f8e3086f3cea0fb3fefb29937ab5ed9d19e767079633960ccb50e76153effc98",
+        "boot_command": [
+            "<esc><esc><esc>",
+          "<enter><wait>",
+          "/casper/vmlinuz ",
+          "initrd=/casper/initrd ", 
+          "autoinstall ds=nocloud-net;",
+          "<wait><enter>"
+        ],
+        "boot_wait": "5s"
+      }
+    ],
+    "provisioners": []
+}
+  
+  

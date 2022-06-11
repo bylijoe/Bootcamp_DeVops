@@ -1,0 +1,34 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.define "ubuntu" do |ubuntu|
+    ubuntu.vm.box = "ubuntu/focal64"
+    ubuntu.vm.box_check_update = false
+    ubuntu.vm.hostname = "ubuntuLVM"
+    ubuntu.vm.provider "virtualbox" do |vb|
+      vb.name = "ubuntuLVM"
+      vb.memory = "512"
+      file_to_disk1 = "extradisk1.vmdk"
+      file_to_disk2 = "extradisk2.vmdk"
+      file_to_disk3 = "extradisk3.vmdk"
+      file_to_disk4 = "extradisk4.vmdk"
+      unless File.exist?(file_to_disk1)
+          vb.customize [ "createmedium", "disk", "--filename", "extradisk1.vmdk", "--format", "vmdk", "--size", 1024 * 1 ]
+      end
+      unless File.exist?(file_to_disk2)
+          vb.customize [ "createmedium", "disk", "--filename", "extradisk2.vmdk", "--format", "vmdk", "--size", 1024 * 1 ]
+      end
+      unless File.exist?(file_to_disk3)
+          vb.customize [ "createmedium", "disk", "--filename", "extradisk3.vmdk", "--format", "vmdk", "--size", 1024 * 1 ]
+      end
+      unless File.exist?(file_to_disk4)
+          vb.customize [ "createmedium", "disk", "--filename", "extradisk4.vmdk", "--format", "vmdk", "--size", 1024 * 1 ]
+      end
+      vb.customize [ "storageattach", "ubuntuLVM" , "--storagectl", "SCSI", "--port", "2", "--device", "0", "--type", "hdd", "--medium", file_to_disk1]
+      vb.customize [ "storageattach", "ubuntuLVM" , "--storagectl", "SCSI", "--port", "3", "--device", "0", "--type", "hdd", "--medium", file_to_disk2]
+      vb.customize [ "storageattach", "ubuntuLVM" , "--storagectl", "SCSI", "--port", "4", "--device", "0", "--type", "hdd", "--medium", file_to_disk3]
+      vb.customize [ "storageattach", "ubuntuLVM" , "--storagectl", "SCSI", "--port", "5", "--device", "0", "--type", "hdd", "--medium", file_to_disk4]
+    end
+  end  
+end

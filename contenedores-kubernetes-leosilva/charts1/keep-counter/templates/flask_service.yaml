@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "keep-counter.fullname" . }}-flask
+  labels:
+    {{- include "keep-counter.labels" . | nindent 4 }}-flask
+spec:
+  type: {{ .Values.service.flask.type }}
+  ports:
+    - port: {{ .Values.service.flask.port }}
+      targetPort: 5000
+      protocol: TCP
+  selector:
+    {{- include "keep-counter.selectorLabels" . | nindent 4 }}-flask
+    

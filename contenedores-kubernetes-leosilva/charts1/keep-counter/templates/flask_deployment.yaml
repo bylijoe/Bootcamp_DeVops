@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "keep-counter.fullname" . }}-flask
+  labels:
+    {{- include "keep-counter.labels" . | nindent 4 }}-flask
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "keep-counter.selectorLabels" . | nindent 6 }}-flask
+  template:
+    metadata:
+      labels:
+        {{- include "keep-counter.selectorLabels" . | nindent 8 }}-flask
+      annotations:
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "5000"
+        prometheus.io/scrape: "true"  
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - flask
+            topologyKey: "kubernetes.io/hostname" 
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - redis
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+        - name: flask
+          image: "{{ .Values.deployment.flask.image.repository }}:{{ .Values.deployment.flask.image.tag }}"
+          env:
+          - name: REDIS_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Release.Name }}-cm
+                key: redis_port
+          - name: REDIS_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Release.Name }}-cm
+                key: redis_host
+          - name: REDIS_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-cm
+                key: password  
+          resources:
+            requests:
+              memory: {{ .Values.deployment.flask.resources.requests.memory }}
+              cpu: {{ .Values.deployment.flask.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.deployment.flask.resources.limits.memory }}
+              cpu: {{ .Values.deployment.flask.resources.limits.cpu }}
+          livenessProbe:
+            httpGet:
+              path: /health/liveness
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3        
+          readinessProbe:
+            httpGet:
+              path: /health/readiness
+              port: 5000 
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3     
+          ports:
+          - containerPort: {{ .Values.deployment.flask.port }}
+          imagePullPolicy: Always
+    

@@ -1,0 +1,14 @@
+# Compiled files
+*.tfstate
+*.tfstate.backup
+*.tfstate.lock.info
+.lock.hcl
+
+*.Identifier
+
+# Directories
+.terraform/
+.terraform
+
+# Ignored vscode files
+.vscode/

@@ -1,0 +1,133 @@
+name: Publish FastAPI
+
+on:
+  
+  pull_request:
+    types: [closed]
+
+env:
+  python_version: 3.9
+  # Variables used to configure
+  REGISTRY: ghcr.io
+  REPOSITORY: keepcodingclouddevops5/liberando-productos-leosilva
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+
+  flake8:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: Lint with flake8
+      run: |
+        pip install flake8 flake8-html
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        mkdir -p reports/flake8
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=79 --statistics --format=html --htmldir=reports/flake8
+    - name: Archive flake8 coverage results
+      uses: actions/upload-artifact@v2
+      with:
+        name: flake8-coverage-report
+        path: reports/flake8/
+
+  pytest:
+    name: Unit Testing
+    needs: flake8
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r src/requirements.txt
+    - name: Test with pytest
+      run: |
+        pip install pytest pytest-cov pytest-html pytest-sugar pytest-json-report
+        pytest -v --cov --html=reports/pytest/report.html
+    - name: Archive pytest coverage results
+      uses: actions/upload-artifact@v2
+      with:
+        name: pytest-coverage-report
+        path: reports/pytest/
+
+  publish_release:
+    if: ${{ github.event.pull_request.merged == true }}
+    runs-on: ubuntu-latest
+    steps:
+      # (Optional) GitHub Enterprise requires GHE_HOST variable set
+      #- name: Set GHE_HOST
+      #  run: |
+      #    echo "GHE_HOST=${GITHUB_SERVER_URL##https:\/\/}" >> $GITHUB_ENV
+
+      # Drafts your next Release notes as Pull Requests are merged into "master"
+      - uses: release-drafter/release-drafter@v5
+        # (Optional) specify config name to use, relative to .github/. Default: release-drafter.yml
+        with:
+          publish: true
+        #   config-name: my-config.yml
+          disable-autolabeler: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+
+  docker_publish:
+    # REF:  https://docs.github.com/en/actions/publishing-packages/publishing-docker-images
+    name: Build & Publish Image
+    needs: publish_release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download code
+        uses: actions/checkout@v3
+        
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - uses: actions-ecosystem/action-get-latest-tag@v1
+        id: get-latest-tag
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.PAT }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}
+      
+      - name: Login to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor}} --password-stdin
+      
+      - name: Build and push into ghcr.io
+        uses: docker/build-push-action@v2
+        id: docker_build
+        with:
+          load: false
+          pull: false
+          push: true # ${{ github.event_name == "pull_request" }}    
+          tags: ${{ env.REGISTRY }}/${{ env.REPOSITORY  }}:${{ steps.get-latest-tag.outputs.tag }}     #${{ github.sha }}
+ 
+      - name: Image digest
+        run: |
+          echo ${{ steps.docker_build.outputs.digest }}
+

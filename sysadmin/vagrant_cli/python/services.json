@@ -1,0 +1,73 @@
+{
+    "teams": [
+        {
+            "team": "bookingengine",
+            "prometheus": "prometheus-hben",
+            "projects": [
+                {
+                    "name": "hben",
+                    "services": [
+                        "StatsAggregator",
+                        "conciliation-suppliers",
+                        "core-api",
+                        "feeder",
+                        "hotels-direct-lost-booking",
+                        "kafka",
+                        "kafka-gs-primary",
+                        "kafka-gs-secondary",
+                        "mapper",
+                        "mongodb",
+                        "mongodb-ump",
+                        "peakbookings-api",
+                        "peakbookings-redis",
+                        "postgresql",
+                        "redis",
+                        "refresher",
+                        "slider",
+                        "switch",
+                        "zookeeper-gs-primary",
+                        "zookeeper-gs-secondary"
+                    ]
+                }
+            ]},
+        {
+        "team": "hdp",
+        "projects": [
+            {
+                "name": "bcong",
+                "services": [
+                    "postgresql",
+                    "pgbouncer",
+                    "redis",
+                    "redis-sell-api",
+                    "redis-sentinel",
+                    "ignite"
+                ]
+            },
+            {
+                "name": "dpc",
+                "services": [
+                    "mongodb"
+                ]
+            }
+        ]},
+        {
+            "team": "smyrooms",
+            "projects": [
+                {
+                    "name": "flatfile",
+                    "services": [
+                        "mongodb"
+                    ]
+                },
+                {
+                    "name": "distributor",
+                    "services": [
+                        "elasticsearch",
+                        "postgresql",
+                        "redis"
+                    ]                    
+                }
+            ]}
+    ]
+}
