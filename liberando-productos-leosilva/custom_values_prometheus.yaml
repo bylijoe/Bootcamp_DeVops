@@ -130,7 +130,7 @@ additionalPrometheusRulesMap:
       - name: ruleset_1
         rules:
           - alert: fastApiConsumingMoreThanRequest
-            expr: avg(container_memory_usage_bytes{container="fastapi"}) by (pod) > avg(kube_pod_container_resource_requests{resource="memory",container="fastapi"}) by (pod)
+            expr: avg by(pod) (container_cpu_usage_seconds_total{container="fastapi"}) > avg by(pod) (kube_pod_container_resource_requests{container="fastapi",resource="cpu"})
             for: 0m
             labels:
               severity: critical
