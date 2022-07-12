@@ -3,12 +3,12 @@
 variable "aws_acces_key" {
     description = "Clave de acceso"
     type = string
-    default = "AKIAVFJLIXD74K7M3BXL"
+    default = ""
 }
 variable "aws_secret_key" {
     description = "Clave de acceso secreta"
     type = string
-    default = "0c5nYup6TkBOnKQS5buu3EYy2XCWikc0uF+HcYBY"
+    default = ""
 }
 
 variable "aws_region" {
